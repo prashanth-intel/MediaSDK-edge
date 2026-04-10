@@ -1121,7 +1121,7 @@ Status MVC_Extension::AllocateView(int32_t view_id)
         return UMC_OK;
     }
 
-    ViewItem view;
+    ViewItem view = {};
     try
     {
         // allocate DPB and POC counter
