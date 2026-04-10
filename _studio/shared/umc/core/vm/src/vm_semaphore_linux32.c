@@ -134,14 +134,17 @@ vm_status vm_semaphore_timedwait(vm_semaphore *sem, uint32_t msec)
     if (NULL == sem)
         return VM_NULL_PTR;
 
-    if (0 <= sem->count)
+    if (0 == pthread_mutex_lock(&sem->mutex))
     {
-        umc_status = VM_OK;
         int32_t i_res = 0;
 
-        i_res = pthread_mutex_lock(&sem->mutex);
-        if (!i_res)
+        if (sem->count < 0)
         {
+            umc_status = VM_NOT_INITIALIZED;
+        }
+        else
+        {
+            umc_status = VM_OK;
             if (0 == sem->count)
             {
                 struct timespec tspec;
@@ -165,16 +168,16 @@ vm_status vm_semaphore_timedwait(vm_semaphore *sem, uint32_t msec)
 
             if (VM_OK == umc_status)
                 sem->count--;
-
-            if (pthread_mutex_unlock(&sem->mutex))
-            {
-                if (VM_OK == umc_status)
-                    umc_status = VM_OPERATION_FAILED;
-            }
         }
-        else
-            umc_status = VM_OPERATION_FAILED;
+
+        if (pthread_mutex_unlock(&sem->mutex))
+        {
+            if (VM_OK == umc_status)
+                umc_status = VM_OPERATION_FAILED;
+        }
     }
+    else
+        umc_status = VM_OPERATION_FAILED;
     return umc_status;
 
 } /* vm_status vm_semaphore_timedwait(vm_semaphore *sem, uint32_t msec) */
@@ -188,24 +191,28 @@ vm_status vm_semaphore_wait(vm_semaphore *sem)
     if (NULL == sem)
         return VM_NULL_PTR;
 
-    if (0 <= sem->count)
+    if (0 == pthread_mutex_lock(&sem->mutex))
     {
-        umc_status = VM_OK;
-        if (0 == pthread_mutex_lock(&sem->mutex))
+        if (sem->count < 0)
         {
+            umc_status = VM_NOT_INITIALIZED;
+        }
+        else
+        {
+            umc_status = VM_OK;
             while (0 == sem->count && umc_status == VM_OK)
                 if (0 != pthread_cond_wait(&sem->cond, &sem->mutex))
                     umc_status = VM_OPERATION_FAILED;
 
             if (VM_OK == umc_status)
                 sem->count--;
-
-            if (pthread_mutex_unlock(&sem->mutex))
-                umc_status = VM_OPERATION_FAILED;
         }
-        else
+
+        if (pthread_mutex_unlock(&sem->mutex))
             umc_status = VM_OPERATION_FAILED;
     }
+    else
+        umc_status = VM_OPERATION_FAILED;
     return umc_status;
 
 } /* vm_status vm_semaphore_wait(vm_semaphore *sem) */
@@ -220,26 +227,28 @@ vm_status vm_semaphore_try_wait(vm_semaphore *sem)
     if (NULL == sem)
         return VM_NULL_PTR;
 
-    if (0 <= sem->count)
+    if (0 == pthread_mutex_lock(&sem->mutex))
     {
-        if (0 == pthread_mutex_lock(&sem->mutex))
+        if (sem->count < 0)
         {
-            if (0 == sem->count)
-                umc_status = VM_TIMEOUT;
-            else
-            {
-                sem->count--;
-                umc_status = VM_OK;
-            }
-            if (pthread_mutex_unlock(&sem->mutex))
-            {
-                if (VM_OK == umc_status)
-                    umc_status = VM_OPERATION_FAILED;
-            }
+            umc_status = VM_NOT_INITIALIZED;
         }
+        else if (0 == sem->count)
+            umc_status = VM_TIMEOUT;
         else
-            umc_status = VM_OPERATION_FAILED;
+        {
+            sem->count--;
+            umc_status = VM_OK;
+        }
+
+        if (pthread_mutex_unlock(&sem->mutex))
+        {
+            if (VM_OK == umc_status)
+                umc_status = VM_OPERATION_FAILED;
+        }
     }
+    else
+        umc_status = VM_OPERATION_FAILED;
     return umc_status;
 
 } /* vm_status vm_semaphore_try_wait(vm_semaphore *sem) */
@@ -254,23 +263,27 @@ vm_status vm_semaphore_post(vm_semaphore *sem)
     if (NULL == sem)
         return VM_NULL_PTR;
 
-    if (0 <= sem->count)
+    if (0 == pthread_mutex_lock(&sem->mutex))
     {
-        if (0 == pthread_mutex_lock(&sem->mutex))
+        if (sem->count < 0)
+        {
+            umc_status = VM_NOT_INITIALIZED;
+        }
+        else
         {
             sem->count++;
             res = pthread_cond_signal(&sem->cond);
 
             umc_status = (res)? VM_OPERATION_FAILED: VM_OK;
 
-            if (pthread_mutex_unlock(&sem->mutex))
-            {
-                umc_status = VM_OPERATION_FAILED;
-            }
         }
-        else
+        if (pthread_mutex_unlock(&sem->mutex))
+        {
             umc_status = VM_OPERATION_FAILED;
+        }
     }
+    else
+        umc_status = VM_OPERATION_FAILED;
     return umc_status;
 
 } /* vm_status vm_semaphore_post(vm_semaphore *sem) */
@@ -288,29 +301,35 @@ vm_status vm_semaphore_post_many(vm_semaphore *sem, int32_t post_count)
     if (post_count > sem->max_count)
         return VM_OPERATION_FAILED;
 
-    if (0 <= sem->count)
+    if (0 == pthread_mutex_lock(&sem->mutex))
     {
-        int32_t i;
-        for (i = 0; i < post_count; i++)
+        if (sem->count < 0)
         {
-            res = pthread_mutex_lock(&sem->mutex);
-            if (0 == res)
+            umc_status = VM_NOT_INITIALIZED;
+        }
+        else
+        {
+            int32_t i;
+            for (i = 0; i < post_count; i++)
             {
                 sem->count++;
                 sts = pthread_cond_signal(&sem->cond);
                 if (!res) res = sts;
 
-                sts = pthread_mutex_unlock(&sem->mutex);
-                if (!res) res = sts;
+                if(res)
+                {
+                    break;
+                }
             }
-
-            if(res)
-            {
-                break;
-            }
+            umc_status = (res)? VM_OPERATION_FAILED: VM_OK;
         }
-        umc_status = (res)? VM_OPERATION_FAILED: VM_OK;
+
+        sts = pthread_mutex_unlock(&sem->mutex);
+        if (!res && sts)
+            umc_status = VM_OPERATION_FAILED;
     }
+    else
+        umc_status = VM_OPERATION_FAILED;
     return umc_status;
 
 } /* vm_status vm_semaphore_post_many(vm_semaphore *sem, int32_t post_count) */

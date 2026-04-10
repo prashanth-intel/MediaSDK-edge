@@ -113,10 +113,14 @@ vm_status vm_event_signal(vm_event *event)
     if (NULL == event)
         return VM_NULL_PTR;
 
-    if (0 <= event->state)
+    res = pthread_mutex_lock(&event->mutex);
+    if (!res)
     {
-        res = pthread_mutex_lock(&event->mutex);
-        if (!res)
+        if (event->state < 0)
+        {
+            umc_status = VM_NOT_INITIALIZED;
+        }
+        else
         {
             umc_status = VM_OK;
             if (0 == event->state)
@@ -140,15 +144,16 @@ vm_status vm_event_signal(vm_event *event)
                 }
             }
 
-            if (0 != pthread_mutex_unlock(&event->mutex))
-            {
-                umc_status = VM_OPERATION_FAILED;
-            }
         }
-        else
+
+        if (0 != pthread_mutex_unlock(&event->mutex))
         {
             umc_status = VM_OPERATION_FAILED;
         }
+    }
+    else
+    {
+        umc_status = VM_OPERATION_FAILED;
     }
     return umc_status;
 
@@ -163,24 +168,28 @@ vm_status vm_event_reset(vm_event *event)
     if (NULL == event)
         return VM_NULL_PTR;
 
-    if (0 <= event->state)
+    res = pthread_mutex_lock(&event->mutex);
+    if (!res)
     {
-        res = pthread_mutex_lock(&event->mutex);
-        if (!res)
+        if (event->state < 0)
+        {
+            umc_status = VM_NOT_INITIALIZED;
+        }
+        else
         {
             umc_status = VM_OK;
             if (1 == event->state)
                 event->state = 0;
-
-            if (0 != pthread_mutex_unlock(&event->mutex))
-            {
-                umc_status = VM_OPERATION_FAILED;
-            }
         }
-        else
+
+        if (0 != pthread_mutex_unlock(&event->mutex))
         {
             umc_status = VM_OPERATION_FAILED;
         }
+    }
+    else
+    {
+        umc_status = VM_OPERATION_FAILED;
     }
     return umc_status;
 
@@ -196,10 +205,14 @@ vm_status vm_event_pulse(vm_event *event)
     if (NULL == event)
         return VM_NULL_PTR;
 
-    if (0 <= event->state)
+    res = pthread_mutex_lock(&event->mutex);
+    if (!res)
     {
-        res = pthread_mutex_lock(&event->mutex);
-        if (!res)
+        if (event->state < 0)
+        {
+            umc_status = VM_NOT_INITIALIZED;
+        }
+        else
         {
             umc_status = VM_OK;
 
@@ -222,15 +235,16 @@ vm_status vm_event_pulse(vm_event *event)
 
             event->state = 0;
 
-            if (0 != pthread_mutex_unlock(&event->mutex))
-            {
-                umc_status = VM_OPERATION_FAILED;
-            }
         }
-        else
+
+        if (0 != pthread_mutex_unlock(&event->mutex))
         {
             umc_status = VM_OPERATION_FAILED;
         }
+    }
+    else
+    {
+        umc_status = VM_OPERATION_FAILED;
     }
     return umc_status;
 
@@ -246,10 +260,14 @@ vm_status vm_event_wait(vm_event *event)
     if (NULL == event)
         return VM_NULL_PTR;
 
-    if (0 <= event->state)
+    res = pthread_mutex_lock(&event->mutex);
+    if (!res)
     {
-        res = pthread_mutex_lock(&event->mutex);
-        if (!res)
+        if (event->state < 0)
+        {
+            umc_status = VM_NOT_INITIALIZED;
+        }
+        else
         {
             umc_status = VM_OK;
             if (!event->state)
@@ -267,15 +285,16 @@ vm_status vm_event_wait(vm_event *event)
             if (!event->manual)
                 event->state = 0;
 
-            if (0 != pthread_mutex_unlock(&event->mutex))
-            {
-                umc_status = VM_OPERATION_FAILED;
-            }
         }
-        else
+
+        if (0 != pthread_mutex_unlock(&event->mutex))
         {
             umc_status = VM_OPERATION_FAILED;
         }
+    }
+    else
+    {
+        umc_status = VM_OPERATION_FAILED;
     }
     return umc_status;
 
@@ -291,10 +310,14 @@ vm_status vm_event_timed_wait(vm_event *event, uint32_t msec)
     if (NULL == event)
         return VM_NULL_PTR;
 
-    if (0 <= event->state)
+    res = pthread_mutex_lock(&event->mutex);
+    if (!res)
     {
-        res = pthread_mutex_lock(&event->mutex);
-        if (!res)
+        if (event->state < 0)
+        {
+            umc_status = VM_NOT_INITIALIZED;
+        }
+        else
         {
             if (0 == event->state)
             {
@@ -336,15 +359,15 @@ vm_status vm_event_timed_wait(vm_event *event, uint32_t msec)
             if (!event->manual)
                 event->state = 0;
         }
-        else
-        {
-            umc_status = VM_OPERATION_FAILED;
-        }
 
         if(pthread_mutex_unlock(&event->mutex))
         {
             umc_status = VM_OPERATION_FAILED;
         }
+    }
+    else
+    {
+        umc_status = VM_OPERATION_FAILED;
     }
     return umc_status;
 
