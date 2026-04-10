@@ -889,7 +889,11 @@ namespace
 
         if (par.calcParam.numTemporalLayer > 0 || par.calcParam.tempScalabilityMode)
         {
-            mfxU32 maxScale = par.calcParam.scale[par.calcParam.numTemporalLayer - 1];
+            mfxU32 maxScale = 1;
+            if (par.calcParam.numTemporalLayer > 0)
+            {
+                maxScale = par.calcParam.scale[par.calcParam.numTemporalLayer - 1];
+            }
             // for tempScalabilityMode number of temporal layers should be changed dynamically w/o IDR insertion
             // to assure this first SPS in bitstream should contain maximum possible log2_max_frame_num_minus4
             if (par.calcParam.tempScalabilityMode)

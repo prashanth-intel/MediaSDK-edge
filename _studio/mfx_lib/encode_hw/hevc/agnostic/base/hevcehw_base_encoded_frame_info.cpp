@@ -92,7 +92,7 @@ void EncodedFrameInfo::QueryTask(const FeatureBlocks& /*blocks*/, TPushQT Push)
         auto GetUsedRef = [&](mfxU8 idx)
         {
             TUsedRef dst = {};
-            auto& src = task.DPB.Active[idx % 16];
+            auto& src = task.DPB.Active[idx % std::size(task.DPB.Active)];
 
             dst.FrameOrder  = src.DisplayOrder;
             dst.LongTermIdx = mfxU16(MFX_LONGTERM_IDX_NO_IDX * !src.isLTR);
@@ -101,8 +101,10 @@ void EncodedFrameInfo::QueryTask(const FeatureBlocks& /*blocks*/, TPushQT Push)
             return dst;
         };
 
-        std::transform(task.RefPicList[0], task.RefPicList[0] + task.NumRefActive[0], pInfo->UsedRefListL0, GetUsedRef);
-        std::transform(task.RefPicList[1], task.RefPicList[1] + task.NumRefActive[1], pInfo->UsedRefListL1, GetUsedRef);
+        const mfxU8 numRefL0 = std::min<mfxU8>(task.NumRefActive[0], mfxU8(std::size(pInfo->UsedRefListL0)));
+        const mfxU8 numRefL1 = std::min<mfxU8>(task.NumRefActive[1], mfxU8(std::size(pInfo->UsedRefListL1)));
+        std::transform(task.RefPicList[0], task.RefPicList[0] + numRefL0, pInfo->UsedRefListL0, GetUsedRef);
+        std::transform(task.RefPicList[1], task.RefPicList[1] + numRefL1, pInfo->UsedRefListL1, GetUsedRef);
 
         pInfo->FrameOrder   = (task.pSurfIn->Data.FrameOrder == mfxU32(-1)) ? task.DisplayOrder : task.pSurfIn->Data.FrameOrder;
         pInfo->LongTermIdx  = mfxU16(MFX_LONGTERM_IDX_NO_IDX * !task.isLTR);
