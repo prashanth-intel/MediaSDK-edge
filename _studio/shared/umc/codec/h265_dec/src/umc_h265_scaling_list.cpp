@@ -34,20 +34,36 @@ void H265ScalingList::init()
     VM_ASSERT(!m_initialized);
 
     for (uint32_t sizeId = 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++)
+        m_dequantCoef[sizeId][0][0] = 0;
+
+    try
     {
-        uint32_t scalingListNum = g_scalingListNum[sizeId];
-        uint32_t scalingListSize = g_scalingListSize[sizeId];
-
-        int16_t* pScalingList = h265_new_array_throw<int16_t>(scalingListNum * scalingListSize * SCALING_LIST_REM_NUM);
-
-        for (uint32_t listId = 0; listId < scalingListNum; listId++)
+        for (uint32_t sizeId = 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++)
         {
-            for (uint32_t qp = 0; qp < SCALING_LIST_REM_NUM; qp++)
+            uint32_t scalingListNum = g_scalingListNum[sizeId];
+            uint32_t scalingListSize = g_scalingListSize[sizeId];
+
+            int16_t* pScalingList = h265_new_array_throw<int16_t>(scalingListNum * scalingListSize * SCALING_LIST_REM_NUM);
+            m_dequantCoef[sizeId][0][0] = pScalingList;
+
+            for (uint32_t listId = 0; listId < scalingListNum; listId++)
             {
-                m_dequantCoef[sizeId][listId][qp] = pScalingList + (qp * scalingListSize);
+                for (uint32_t qp = 0; qp < SCALING_LIST_REM_NUM; qp++)
+                {
+                    m_dequantCoef[sizeId][listId][qp] = pScalingList + (qp * scalingListSize);
+                }
+                pScalingList += (SCALING_LIST_REM_NUM * scalingListSize);
             }
-            pScalingList += (SCALING_LIST_REM_NUM * scalingListSize);
         }
+    }
+    catch (...)
+    {
+        for (uint32_t sizeId = 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++)
+        {
+            delete [] m_dequantCoef[sizeId][0][0];
+            m_dequantCoef[sizeId][0][0] = 0;
+        }
+        throw;
     }
 
     //alias list [1] as [3].
