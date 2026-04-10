@@ -1852,6 +1852,15 @@ mfxStatus VAAPIVideoProcessing::Execute_Composition_TiledVideoWall(mfxExecutePar
         m_feedbackCache.push_back(currentFeedback);
     }
 
+    // These pointers refer to stack-owned rectangles/blend states in this function.
+    // Clear them before returning to avoid stale pointer reuse across calls.
+    for (auto& p : m_pipelineParam)
+    {
+        p.surface_region = nullptr;
+        p.output_region = nullptr;
+        p.blend_state = nullptr;
+    }
+
     return MFX_ERR_NONE;
 } // mfxStatus VAAPIVideoProcessing::Execute_Composition_TileVideoWall(mfxExecuteParams *pParams)
 
@@ -2421,6 +2430,15 @@ mfxStatus VAAPIVideoProcessing::Execute_Composition(mfxExecuteParams *pParams)
         currentFeedback.surface = *outputSurface;
         currentFeedback.number = pParams->statusReportID;
         m_feedbackCache.push_back(currentFeedback);
+    }
+
+    // These pointers refer to stack-owned rectangles/blend states in this function.
+    // Clear them before returning to avoid stale pointer reuse across calls.
+    for (auto& p : m_pipelineParam)
+    {
+        p.surface_region = nullptr;
+        p.output_region = nullptr;
+        p.blend_state = nullptr;
     }
 
     return MFX_ERR_NONE;
