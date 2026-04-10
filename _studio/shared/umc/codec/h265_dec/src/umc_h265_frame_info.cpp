@@ -111,7 +111,7 @@ void H265DecoderFrameInfo::EliminateErrors()
         if (slice->GetSliceHeader()->dependent_slice_segment_flag)
         {
             RemoveSlice(sliceId);
-            sliceId = uint32_t(-1);
+            sliceId = 0;
             continue;
         }
         else
@@ -169,7 +169,7 @@ void H265DecoderFrameInfo::EliminateErrors()
                 sliceIdToRemove = sliceId + 1;
             }
             RemoveSlice(sliceIdToRemove);
-            sliceId = uint32_t(-1);
+            sliceId = 0;
             continue;
         }
     }

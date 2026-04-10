@@ -219,18 +219,18 @@ void SetOfSlices::AddSet(const SetOfSlices *set)
 
 void SetOfSlices::CleanUseless()
 {
-    size_t count = m_pSliceQueue.size();
-    for (size_t sliceId = 0; sliceId < count; sliceId++)
+    size_t sliceId = 0;
+    while (sliceId < m_pSliceQueue.size())
     {
         H264Slice * curSlice = m_pSliceQueue[sliceId];
         if (curSlice->m_bDecoded)
         {
             m_pSliceQueue.erase(m_pSliceQueue.begin() + sliceId); // remove
-            count = m_pSliceQueue.size();
-            --sliceId;
             curSlice->Release();
             curSlice->DecrementReference();
+            continue;
         }
+        ++sliceId;
     }
 }
 
@@ -322,17 +322,17 @@ size_t AccessUnit::GetLayersCount() const
 
 void AccessUnit::CleanUseless()
 {
-    size_t count = m_layers.size();
-    for (size_t pos = 0; pos < count; pos++)
+    size_t pos = 0;
+    while (pos < m_layers.size())
     {
         SetOfSlices * set = &m_layers[pos];
         set->CleanUseless();
         if (!set->GetSliceCount())
         {
             m_layers.erase(m_layers.begin() + pos);
-            count = m_layers.size();
-            pos--;
+            continue;
         }
+        ++pos;
     }
 }
 
