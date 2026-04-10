@@ -87,16 +87,24 @@ int mfxiQuantInvTableInit_JPEG_16u32f(
   float* qnt)
 {
   uint16_t    wb[DCTSIZE2];
+  int16_t     raw_s[DCTSIZE2];
+  int16_t     wb_s[DCTSIZE2];
   int status;
 
-  status = mfxiZigzagInv8x8_16s_C1((int16_t*)raw,(int16_t*)wb);
+  for (int i = 0; i < DCTSIZE2; i++)
+    raw_s[i] = (int16_t)raw[i];
+
+  status = mfxiZigzagInv8x8_16s_C1(raw_s, wb_s);
   if(ippStsNoErr != status)
   {
     return status;
   }
 
+  for (int i = 0; i < DCTSIZE2; i++)
+    wb[i] = (uint16_t)wb_s[i];
+
   for(int i = 0; i < DCTSIZE2; i++)
-    ((float*)qnt)[i] = (float)((uint16_t*)wb)[i];
+    qnt[i] = (float)wb[i];
 
   return ippStsNoErr;
 } // mfxiQuantInvTableInit_JPEG_16u32f()
@@ -107,7 +115,7 @@ JERRCODE CJPEGDecoderQuantTable::Init(int id,uint16_t raw[64])
   m_id        = id & 0x0f;
   m_precision = 1; // 16-bit precision
 
-  MFX_INTERNAL_CPY((int16_t*)m_raw16u, (int16_t*)raw, DCTSIZE2*sizeof(int16_t));
+  MFX_INTERNAL_CPY(m_raw16u, raw, DCTSIZE2*sizeof(uint16_t));
 #ifdef MFX_ENABLE_SW_FALLBACK
   int status = mfxiQuantInvTableInit_JPEG_16u32f(m_raw16u,m_qnt32f);
   if(ippStsNoErr != status)
