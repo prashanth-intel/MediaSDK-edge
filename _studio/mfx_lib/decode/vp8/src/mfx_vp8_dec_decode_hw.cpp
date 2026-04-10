@@ -599,11 +599,11 @@ mfxStatus MFX_CDECL VP8DECODERoutine(void *p_state, void * /*pp_param*/, mfxU32 
 {
     MFX_AUTO_LTRACE(MFX_TRACE_LEVEL_API, "VP8DECODERoutine");
     mfxStatus sts = MFX_ERR_NONE;
-    VideoDECODEVP8_HW::VP8DECODERoutineData& data = *(VideoDECODEVP8_HW::VP8DECODERoutineData*)p_state;
-    VideoDECODEVP8_HW& decoder = *data.decoder;
+    auto* data = (VideoDECODEVP8_HW::VP8DECODERoutineData*)p_state;
+    VideoDECODEVP8_HW& decoder = *data->decoder;
 
 #ifdef MFX_VA_LINUX
-    UMC::Status status = decoder.m_p_video_accelerator->SyncTask(data.memId);
+    UMC::Status status = decoder.m_p_video_accelerator->SyncTask(data->memId);
     if (status != UMC::UMC_OK)
     {
         mfxStatus CriticalErrorStatus = (status == UMC::UMC_ERR_GPU_HANG) ? MFX_ERR_GPU_HANG : MFX_ERR_DEVICE_FAILED;
@@ -614,13 +614,13 @@ mfxStatus MFX_CDECL VP8DECODERoutine(void *p_state, void * /*pp_param*/, mfxU32 
 
     if (decoder.m_video_params.IOPattern & MFX_IOPATTERN_OUT_SYSTEM_MEMORY)
     {
-        sts = decoder.m_p_frame_allocator->PrepareToOutput(data.surface_work, data.memId, &decoder.m_on_init_video_params, false);
+        sts = decoder.m_p_frame_allocator->PrepareToOutput(data->surface_work, data->memId, &decoder.m_on_init_video_params, false);
     }
 
 
     UMC::AutomaticUMCMutex guard(decoder.m_mGuard);
 
-    decoder.m_memIdReadyToFree.push_back(data.memId);
+    decoder.m_memIdReadyToFree.push_back(data->memId);
 
     UMC::FrameMemID memIdToUnlock = -1;
     while ((memIdToUnlock = decoder.GetMemIdToUnlock()) != -1)
@@ -628,7 +628,7 @@ mfxStatus MFX_CDECL VP8DECODERoutine(void *p_state, void * /*pp_param*/, mfxU32 
         decoder.m_p_frame_allocator.get()->DecreaseReference(memIdToUnlock);
     }
 
-    delete &data;
+    delete data;
 
     return sts;
 }
