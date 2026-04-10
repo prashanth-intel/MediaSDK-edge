@@ -3008,7 +3008,10 @@ bool GetInterRps(STRPS const & refRPS, STRPS& rps, mfxU8 dIdxMinus1)
     }
 
     newRPS.delta_rps_sign       = (dPoc < 0);
-    newRPS.abs_delta_rps_minus1 = mfxU16(abs(dPoc) - 1);
+    const mfxU32 absDPoc = (dPoc < 0)
+        ? mfxU32(-(mfxI64)dPoc)
+        : mfxU32((mfxI64)dPoc);
+    newRPS.abs_delta_rps_minus1 = mfxU16(absDPoc - 1);
 
     SetIf(rps, bDPocFound, newRPS);
 
