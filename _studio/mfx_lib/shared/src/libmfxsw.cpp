@@ -187,9 +187,9 @@ mfxStatus MFXDoWork(mfxSession session)
     {
         return MFX_ERR_UNSUPPORTED;
     }
-    newScheduler->Release();
 
-    mfxStatus res = newScheduler->DoWork();    
+    mfxStatus res = newScheduler->DoWork();
+    newScheduler->Release();
 
     return res;
 } // mfxStatus MFXDoWork(mfxSession *session)
