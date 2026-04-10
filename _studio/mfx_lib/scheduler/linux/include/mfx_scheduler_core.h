@@ -324,7 +324,7 @@ protected:
                 // run over the tasks with particular priority
                 while (task)
                 {
-                    if (false == std::forward<F>(f)(task))
+                    if (false == f(task))
                         return;
                     // advance the task pointer
                     task = task->pNext;
@@ -339,7 +339,7 @@ protected:
 
         ForEachTaskWhile(
             [&f] (MFX_SCHEDULER_TASK *task)
-            { std::forward<F>(f)(task); return true; }
+            { f(task); return true; }
         );
     }
 
