@@ -5236,8 +5236,9 @@ template <class T> void add_unique_fragments(const cRect<T> &r, std::vector< cRe
         cRect<T> &cr = stack.back();
 
         if(cr.m_frag_lvl == frag_cnt) {
+            cRect<T> cr_copy = cr;
             stack.pop_back();
-            fragments.push_back(cr);
+            fragments.push_back(cr_copy);
         } else {
             const cRect<T> &cf = fragments[cr.m_frag_lvl];
             if (cf.overlap(cr)) {
