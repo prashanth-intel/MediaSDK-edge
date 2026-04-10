@@ -2730,6 +2730,8 @@ mfxU16 Legacy::UpdateDPB(
             , [&](const TLCtrlRLE& lt)
         {
             mfxU16 idx = GetDPBIdxByFO(dpb, lt.FrameOrder);
+            if (idx >= end)
+                return mfxU16(MAX_DPB_SIZE);
             idx += !!dpb[idx].isLTR * MAX_DPB_SIZE;
             return std::min<mfxU16>(idx, MAX_DPB_SIZE);
         });
