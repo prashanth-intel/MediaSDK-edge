@@ -225,11 +225,11 @@ mfxStatus VAAPIVideoProcessing::Init(_mfxPlatformAccelerationService* pVADisplay
 
         m_cachedReadyTaskIndex.clear();
 
-        VAEntrypoint* va_entrypoints = NULL;
+        std::unique_ptr<VAEntrypoint[]> va_entrypoints;
         VAStatus vaSts;
         int va_max_num_entrypoints   = vaMaxNumEntrypoints(m_vaDisplay);
         if(va_max_num_entrypoints)
-            va_entrypoints = new VAEntrypoint[va_max_num_entrypoints];
+            va_entrypoints.reset(new VAEntrypoint[va_max_num_entrypoints]);
         else
             return MFX_ERR_DEVICE_FAILED;
 
@@ -237,7 +237,7 @@ mfxStatus VAAPIVideoProcessing::Init(_mfxPlatformAccelerationService* pVADisplay
 
         vaSts = vaQueryConfigEntrypoints(m_vaDisplay,
                                             VAProfileNone,
-                                            va_entrypoints,
+                                            va_entrypoints.get(),
                                             &entrypointsCount);
         MFX_CHECK(VA_STATUS_SUCCESS == vaSts, MFX_ERR_DEVICE_FAILED);
 
@@ -249,7 +249,6 @@ mfxStatus VAAPIVideoProcessing::Init(_mfxPlatformAccelerationService* pVADisplay
                 break;
             }
         }
-        delete[] va_entrypoints;
 
         if( !m_bRunning )
         {
