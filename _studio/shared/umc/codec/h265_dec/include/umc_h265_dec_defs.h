@@ -946,6 +946,7 @@ struct H265SeqParamSet : public HeapObject, public H265SeqParamSetBase
 
         m_RPSList.m_NumberOfReferencePictureSets = 0;
         m_paletteInitializers.clear();
+        m_changed = false;
 
         sps_video_parameter_set_id = MAX_NUM_VPS_PARAM_SETS_H265;
         sps_seq_parameter_set_id = MAX_NUM_SEQ_PARAM_SETS_H265;
@@ -1141,6 +1142,7 @@ struct H265PicParamSet : public HeapObject, public H265PicParamSetBase
         tilesInfo.clear();
         m_paletteInitializers.clear();
         m_scalingList.destroy();
+        m_changed = false;
 
         pps_pic_parameter_set_id = MAX_NUM_PIC_PARAM_SETS_H265;
         pps_seq_parameter_set_id = MAX_NUM_SEQ_PARAM_SETS_H265;
