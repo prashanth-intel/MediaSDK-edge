@@ -1121,7 +1121,15 @@ Status MVC_Extension::AllocateView(int32_t view_id)
         return UMC_OK;
     }
 
-    ViewItem view = {};
+    ViewItem view;
+    view.viewId = (uint32_t)INVALID_VIEW_ID;
+    view.maxDecFrameBuffering = 1;
+    view.maxNumReorderFrames = 16;
+    view.pCurFrame = 0;
+    view.localFrameTime = 0;
+    view.m_isDisplayable = true;
+    for (uint32_t i = 0; i < MAX_NUM_LAYERS; i++)
+        view.MaxLongTermFrameIdx[i] = 0;
     try
     {
         // allocate DPB and POC counter
