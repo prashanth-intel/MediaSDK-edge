@@ -3185,6 +3185,9 @@ void Legacy::SetSTRPS(
     mfxU8 nSet         = mfxU8(std::distance(pSetsBegin, pSetsEnd));
     auto  IsRpsOptimal = [&nSet, &par, pSetsBegin](const STRPS& curRps)
     {
+        if (nSet < 2)
+            return true;
+
         STRPS  rps   = curRps;
         mfxU32 n     = curRps.WeightInGop; //current RPS used for N frames
         //bits for RPS in SPS and SSHs
@@ -3198,7 +3201,7 @@ void Legacy::SetSTRPS(
         {
             return std::move(x) + r.inter_ref_pic_set_prediction_flag * r.WeightInGop;
         };
-        if (CeilLog2(nSet) - CeilLog2(nSet - 1)) //diff RPS idx bits with bigger RPS for ALL frames
+        if (nSet > 1 && (CeilLog2(nSet) - CeilLog2(nSet - 1))) //diff RPS idx bits with bigger RPS for ALL frames
             bits0 = par.mfx.NumSlice * std::accumulate(pSetsBegin, pSetsBegin + nSet - 1, bits0, AccFrWithRPS);
 
         //emulate removal of current RPS from SPS
