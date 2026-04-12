@@ -112,6 +112,9 @@ int mfxiQuantInvTableInit_JPEG_16u32f(
 
 JERRCODE CJPEGDecoderQuantTable::Init(int id,uint16_t raw[64])
 {
+  if (!raw)
+    return JPEG_ERR_INTERNAL;
+
   m_id        = id & 0x0f;
   m_precision = 1; // 16-bit precision
 
