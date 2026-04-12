@@ -928,6 +928,7 @@ struct H265SeqParamSet : public HeapObject, public H265SeqParamSetBase
     H265SeqParamSet()
         : HeapObject()
         , H265SeqParamSetBase()
+        , m_changed(false)
     {
         Reset();
     }
@@ -1125,6 +1126,7 @@ struct H265PicParamSet : public HeapObject, public H265PicParamSetBase
 
     H265PicParamSet()
         : H265PicParamSetBase()
+        , m_changed(false)
     {
         Reset();
     }
