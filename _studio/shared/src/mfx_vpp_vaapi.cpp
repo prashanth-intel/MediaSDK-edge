@@ -1615,6 +1615,7 @@ mfxStatus VAAPIVideoProcessing::Execute_Composition_TiledVideoWall(mfxExecutePar
         return MFX_ERR_UNKNOWN;
     }
     mfxU32 layerCount = (mfxU32) pParams->fwdRefCount + 1;
+    MFX_CHECK(layerCount <= (mfxU32)pParams->refCount + 1, MFX_ERR_INCOMPATIBLE_VIDEO_PARAM);
 
     std::vector<m_tiledVideoWallParams> tilingParams;
     tilingParams.resize(pParams->iTilesNum4Comp);
@@ -2225,7 +2226,7 @@ mfxStatus VAAPIVideoProcessing::Execute_Composition(mfxExecuteParams *pParams)
     m_pipelineParamCompID.resize(pParams->fwdRefCount/7, VA_INVALID_ID);
 
     /* pParams->fwdRefCount actually is number of sub stream*/
-    for( refIdx = 1; refIdx <= (refCount + 1); refIdx++ )
+    for( refIdx = 1; refIdx <= refCount; refIdx++ )
     {
         /*for frames 8, 15, 22, 29,... */
         if ((refIdx != 1) && ((refIdx %7) == 1) )
