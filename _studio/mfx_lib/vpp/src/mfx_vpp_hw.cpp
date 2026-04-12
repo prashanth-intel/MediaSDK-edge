@@ -5227,7 +5227,7 @@ template <class T> void fragment(const cRect<T> a, const cRect<T> &b, std::vecto
 template <class T> void add_unique_fragments(const cRect<T> &r, std::vector< cRect<T> > &fragments)
 {
     std::vector< cRect<T> > stack;
-    int frag_cnt = (int)fragments.size();
+    size_t frag_cnt = fragments.size();
 
     stack.reserve(128);
     stack.push_back(r);
@@ -5235,12 +5235,12 @@ template <class T> void add_unique_fragments(const cRect<T> &r, std::vector< cRe
     while(!stack.empty()) {
         cRect<T> &cr = stack.back();
 
-        if(cr.m_frag_lvl == frag_cnt) {
+        if ((size_t)cr.m_frag_lvl >= frag_cnt) {
             cRect<T> cr_copy = cr;
             stack.pop_back();
             fragments.push_back(cr_copy);
         } else {
-            const cRect<T> &cf = fragments[cr.m_frag_lvl];
+            const cRect<T> &cf = fragments[(size_t)cr.m_frag_lvl];
             if (cf.overlap(cr)) {
                 stack.pop_back();
                 fragment(cr, cf, stack);
