@@ -188,10 +188,15 @@ mfxStatus MFXDoWork(mfxSession session)
         return MFX_ERR_UNSUPPORTED;
     }
 
-    mfxStatus res = newScheduler->DoWork();
-    newScheduler->Release();
+    std::unique_ptr<MFXIScheduler2, void(*)(MFXIScheduler2*)> scheduler_guard(
+        newScheduler,
+        [](MFXIScheduler2* p) {
+            if (p) {
+                p->Release();
+            }
+        });
 
-    return res;
+    return newScheduler->DoWork();
 } // mfxStatus MFXDoWork(mfxSession *session)
 
 mfxStatus MFXClose(mfxSession session)
